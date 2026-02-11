@@ -1,6 +1,17 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "../api";
 import { useAuth } from "../context/AuthContext";
+
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString();
+}
+
+function statusClass(status) {
+  return `status-pill status-${(status || "").toLowerCase()}`;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -44,11 +55,72 @@ export default function DashboardPage() {
     }
   }
 
+  const pendingCount = bookings.filter((b) => b.status === "pending").length;
+  const acceptedCount = bookings.filter((b) => b.status === "accepted").length;
+  const completedCount = bookings.filter((b) => b.status === "completed").length;
+  const cancelledCount = bookings.filter((b) => b.status === "cancelled").length;
+
+  const today = new Date(new Date().toDateString());
+  const upcomingBookings = [...bookings]
+    .filter((b) => b.scheduled_date && new Date(b.scheduled_date) >= today)
+    .sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date))
+    .slice(0, 5);
+
+  const estimatedEarnings = bookings
+    .filter((b) => b.status === "completed")
+    .reduce((sum, b) => sum + (services.find((s) => s.id === b.service_id)?.base_price || 0), 0);
+
+  const activityFeed = [...bookings]
+    .sort((a, b) => new Date(b.created_at || b.scheduled_date) - new Date(a.created_at || a.scheduled_date))
+    .slice(0, 6)
+    .map((b) => {
+      const label =
+        b.status === "completed"
+          ? "Booking completed"
+          : b.status === "accepted"
+            ? "Booking accepted"
+            : b.status === "cancelled"
+              ? "Booking cancelled"
+              : "New booking request";
+      return { id: b.id, label, service: b.service_title, date: b.created_at || b.scheduled_date };
+    });
+
   return (
     <section>
       <h2>Dashboard</h2>
       <p>{user.full_name} ({user.role})</p>
       {error && <p className="error">{error}</p>}
+
+      <div className="dashboard-kpis">
+        <article className="card kpi-card">
+          <h4>Total Bookings</h4>
+          <p>{bookings.length}</p>
+        </article>
+        <article className="card kpi-card">
+          <h4>Pending</h4>
+          <p>{pendingCount}</p>
+        </article>
+        <article className="card kpi-card">
+          <h4>Completed</h4>
+          <p>{completedCount}</p>
+        </article>
+        <article className="card kpi-card">
+          <h4>Cancelled</h4>
+          <p>{cancelledCount}</p>
+        </article>
+        {user.role === "provider" && (
+          <article className="card kpi-card">
+            <h4>Estimated Earnings</h4>
+            <p>Rs {estimatedEarnings}</p>
+          </article>
+        )}
+        {user.role === "user" && (
+          <article className="card kpi-card">
+            <h4>Accepted</h4>
+            <p>{acceptedCount}</p>
+          </article>
+        )}
+      </div>
 
       {user.role === "provider" && (
         <div className="card split">
@@ -64,19 +136,51 @@ export default function DashboardPage() {
           <div>
             <h3>Your Services</h3>
             <ul className="list">
-              {services.map((s)=><li key={s.id}>{s.title} - {s.category} - ${s.base_price}</li>)}
+              {services.map((s)=><li key={s.id}>{s.title} - {s.category} - Rs {s.base_price}</li>)}
               {!services.length && <li>No services yet.</li>}
             </ul>
           </div>
         </div>
       )}
 
+      <div className="dashboard-split">
+        <div className="card">
+          <h3>Upcoming Bookings</h3>
+          <ul className="list">
+            {upcomingBookings.map((b) => (
+              <li key={b.id}>
+                <strong>{b.service_title}</strong> | {formatDate(b.scheduled_date)} | <span className={statusClass(b.status)}>{b.status}</span>
+                <div>{user.role === "provider" ? `Customer: ${b.user_name}` : `Provider: ${b.provider_name}`}</div>
+                <div>{b.address}</div>
+              </li>
+            ))}
+            {!upcomingBookings.length && <li>No upcoming bookings.</li>}
+          </ul>
+        </div>
+
+        <div className="card">
+          <h3>Activity Feed</h3>
+          <ul className="list">
+            {activityFeed.map((a) => (
+              <li key={a.id}>
+                <strong>{a.label}</strong>
+                <div>{a.service}</div>
+                <div>{formatDate(a.date)}</div>
+              </li>
+            ))}
+            {!activityFeed.length && <li>No activity yet.</li>}
+          </ul>
+        </div>
+      </div>
+
       <div className="card">
-        <h3>{user.role === "provider" ? "Incoming Bookings" : "Your Bookings"}</h3>
+        <h3>{user.role === "provider" ? "All Incoming Bookings" : "All Your Bookings"}</h3>
         <ul className="list">
           {bookings.map((b)=>(
             <li key={b.id}>
-              <strong>{b.service_title}</strong> | {b.scheduled_date} | {b.status}
+              <strong>{b.service_title}</strong> | {formatDate(b.scheduled_date)} | <span className={statusClass(b.status)}>{b.status}</span>
+              <div>{user.role === "provider" ? `Customer: ${b.user_name}` : `Provider: ${b.provider_name}`}</div>
+              <div>{b.address}</div>
               {user.role === "provider" && (
                 <div className="actions-inline">
                   <button onClick={()=>updateStatus(b.id, "accepted")}>Accept</button>

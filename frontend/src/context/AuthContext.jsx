@@ -20,7 +20,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ user, isAuthenticated: Boolean(user), login, logout }), [user]);
+  const updateUser = (nextUser) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...nextUser };
+      localStorage.setItem("locahelp_user", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const value = useMemo(() => ({ user, isAuthenticated: Boolean(user), login, logout, updateUser }), [user]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

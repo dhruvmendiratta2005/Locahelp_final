@@ -31,3 +31,6 @@ cd frontend
 npm install
 npm run dev
 ```
+
+>> .\.venv\Scripts\activate
+>> python run.py

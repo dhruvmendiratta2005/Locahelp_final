@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "../api";
 import { useAuth } from "../context/AuthContext";
 
@@ -11,6 +11,8 @@ export default function ServicesPage() {
   const [review, setReview] = useState({ booking_id: "", rating: 5, comment: "" });
   const [myBookings, setMyBookings] = useState([]);
   const [error, setError] = useState("");
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const bookingSuccessTimerRef = useRef(null);
 
   async function loadServices() {
     try {
@@ -34,12 +36,19 @@ export default function ServicesPage() {
 
   useEffect(() => { loadServices(); }, []);
   useEffect(() => { loadMyBookings(); }, [isAuthenticated]);
+  useEffect(() => () => {
+    if (bookingSuccessTimerRef.current) window.clearTimeout(bookingSuccessTimerRef.current);
+  }, []);
 
   async function handleBook(e) {
     e.preventDefault();
     try {
       await apiRequest("/bookings", { method: "POST", body: JSON.stringify({ service_id: Number(booking.service_id), scheduled_date: booking.scheduled_date, address: booking.address, notes: booking.notes }) });
       setBooking({ service_id: "", scheduled_date: "", address: "", notes: "" });
+      setError("");
+      setBookingSuccess(true);
+      if (bookingSuccessTimerRef.current) window.clearTimeout(bookingSuccessTimerRef.current);
+      bookingSuccessTimerRef.current = window.setTimeout(() => setBookingSuccess(false), 2200);
       loadMyBookings();
     } catch (e) { setError(e.message); }
   }
@@ -55,6 +64,14 @@ export default function ServicesPage() {
 
   return (
     <section>
+      {bookingSuccess && (
+        <div className="booking-success-popup" role="status" aria-live="polite">
+          <div className="booking-success-tick">?</div>
+          <div>
+            <strong>Booking request raised</strong>
+          </div>
+        </div>
+      )}
       <h2>Services</h2>
       <div className="card form-grid">
         <input placeholder="Category" value={filters.category} onChange={(e)=>setFilters((f)=>({...f,category:e.target.value}))} />
@@ -71,7 +88,7 @@ export default function ServicesPage() {
               <h3>{s.title}</h3>
               <p>{s.description}</p>
               <p><strong>{s.category}</strong> - {s.city}</p>
-              <p>${s.base_price}</p>
+              <p>Rs {s.base_price}</p>
               <p>Provider: {s.provider_name}</p>
               <p>Rating: {rev.average_rating} / 5 ({rev.count})</p>
             </article>

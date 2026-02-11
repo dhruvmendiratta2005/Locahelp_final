@@ -31,6 +31,20 @@ class User(db.Model):
         return {"id": self.id, "full_name": self.full_name, "email": self.email, "phone": self.phone, "role": self.role, "city": self.city}
 
 
+class UserProfile(db.Model):
+    __tablename__ = "user_profiles"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    home_address = db.Column(db.String(255), nullable=True)
+    office_address = db.Column(db.String(255), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    user = db.relationship("User", backref=db.backref("profile", uselist=False, cascade="all, delete-orphan"))
+
+    def to_dict(self):
+        return {"home_address": self.home_address, "office_address": self.office_address}
+
+
 class Service(db.Model):
     __tablename__ = "services"
     id = db.Column(db.Integer, primary_key=True)

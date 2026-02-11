@@ -9,6 +9,7 @@ from .routes.bookings import bookings_bp
 from .routes.reviews import reviews_bp
 from .routes.issues import issues_bp
 from .routes.health import health_bp
+from .routes.profile import profile_bp
 
 
 def seed_default_services():
@@ -97,6 +98,90 @@ def seed_default_services():
                 }
             ],
         },
+        {
+            "full_name": "Chennai Prime Plumbing",
+            "email": "provider.chennai.plumber@locahelp.local",
+            "phone": "9000000007",
+            "city": "Chennai",
+            "services": [
+                {
+                    "title": "Emergency Plumbing in Chennai",
+                    "category": "Plumbing",
+                    "description": "Leak repairs, clogged drain clearing, and pipe replacements.",
+                    "base_price": 850,
+                }
+            ],
+        },
+        {
+            "full_name": "Chennai Electric Care",
+            "email": "provider.chennai.electrician@locahelp.local",
+            "phone": "9000000008",
+            "city": "Chennai",
+            "services": [
+                {
+                    "title": "Home Electrician Service",
+                    "category": "Electrician",
+                    "description": "MCB issues, switch repair, wiring checks, and appliance points.",
+                    "base_price": 900,
+                }
+            ],
+        },
+        {
+            "full_name": "Madras Home Cooks",
+            "email": "provider.chennai.cook@locahelp.local",
+            "phone": "9000000009",
+            "city": "Chennai",
+            "services": [
+                {
+                    "title": "South Indian Home Cook",
+                    "category": "Cook",
+                    "description": "Fresh home-style cooking for breakfast, lunch, and dinner.",
+                    "base_price": 1200,
+                }
+            ],
+        },
+        {
+            "full_name": "Chennai Spark AC and Repairs",
+            "email": "provider.chennai.ac@locahelp.local",
+            "phone": "9000000010",
+            "city": "Chennai",
+            "services": [
+                {
+                    "title": "AC Service and Gas Refill",
+                    "category": "AC Service",
+                    "description": "AC cleaning, cooling diagnostics, and gas top-up support.",
+                    "base_price": 1400,
+                }
+            ],
+        },
+        {
+            "full_name": "Chennai Deep Cleaning Squad",
+            "email": "provider.chennai.cleaning@locahelp.local",
+            "phone": "9000000011",
+            "city": "Chennai",
+            "services": [
+                {
+                    "title": "Full Home Deep Cleaning",
+                    "category": "Cleaning",
+                    "description": "Room-by-room deep cleaning with kitchen and bathroom focus.",
+                    "base_price": 1800,
+                }
+            ],
+        },
+        {
+            "full_name": "Marina City Painter Services",
+            "email": "provider.chennai.painter@locahelp.local",
+            "phone": "9000000012",
+            "city": "Chennai",
+            "services": [
+                {
+                    "title": "Wall Painting and Touch-up",
+                    "category": "Painter",
+                    "description": "Interior wall painting, patch work, and quick touch-up jobs.",
+                    "base_price": 2000,
+                }
+            ],
+        },
     ]
 
     for provider_data in seed_providers:
@@ -147,6 +232,7 @@ def create_app():
     app.register_blueprint(bookings_bp)
     app.register_blueprint(reviews_bp)
     app.register_blueprint(issues_bp)
+    app.register_blueprint(profile_bp)
 
     with app.app_context():
         db.create_all()
