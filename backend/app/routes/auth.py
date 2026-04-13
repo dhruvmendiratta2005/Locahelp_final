@@ -27,19 +27,21 @@ def send_otp_email(to_email, otp):
     text = f"Your OTP for logging into Locahelp is: {otp}\nThis code will expire in 10 minutes."
     msg.attach(MIMEText(text, "plain"))
 
-    print(f"===================================================")
-    print(f"🔔 OTP for {to_email} is: {otp}")
-    print(f"===================================================")
+    print(f"===================================================", flush=True)
+    print(f"🔔 OTP for {to_email} is: {otp}", flush=True)
+    print(f"===================================================", flush=True)
 
     try:
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=5)
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, to_email, msg.as_string())
-        server.quit()
-        print(f"OTP sent to {to_email} via email.")
+        # Render's free tier entirely blocks outbound ports 465/587. 
+        # Attempting to connect will blackhole the TCP socket and freeze the Waitress worker.
+        # server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=5)
+        # server.login(sender_email, sender_password)
+        # server.sendmail(sender_email, to_email, msg.as_string())
+        # server.quit()
+        print(f"OTP processing complete (Email blocked by Render, see above).", flush=True)
     except Exception as e:
-        print(f"Failed to send OTP email to {to_email}: {e}")
-        print(f"But don't worry, you can use the OTP printed above! (Render blocks SMTP ports)")
+        print(f"Failed to send OTP email to {to_email}: {e}", flush=True)
+        print(f"But don't worry, you can use the OTP printed above! (Render blocks SMTP ports)", flush=True)
 
 @auth_bp.post("/register")
 def register():
