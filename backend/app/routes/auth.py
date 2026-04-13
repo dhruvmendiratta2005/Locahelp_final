@@ -27,14 +27,19 @@ def send_otp_email(to_email, otp):
     text = f"Your OTP for logging into Locahelp is: {otp}\nThis code will expire in 10 minutes."
     msg.attach(MIMEText(text, "plain"))
 
+    print(f"===================================================")
+    print(f"🔔 OTP for {to_email} is: {otp}")
+    print(f"===================================================")
+
     try:
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=5)
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, to_email, msg.as_string())
         server.quit()
         print(f"OTP sent to {to_email} via email.")
     except Exception as e:
         print(f"Failed to send OTP email to {to_email}: {e}")
+        print(f"But don't worry, you can use the OTP printed above! (Render blocks SMTP ports)")
 
 @auth_bp.post("/register")
 def register():
